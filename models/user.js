@@ -4,7 +4,6 @@ const Joi = require('joi');
 const { handleMongooseError } = require('../utils');
 
 const emailRegexp = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-// const phoneRegexp = /^[+\d-]{6,}$/;
 
 const userSchema = new Schema(
   {
@@ -25,24 +24,27 @@ const userSchema = new Schema(
     },
     avatarURL: {
       type: String,
-      default: null,
+      default: '',
     },
     birthday: {
       type: String,
-      default: null,
+      default: '',
     },
     skype: {
       type: String,
-      default: null,
+      default: '',
     },
     phone: {
       type: String,
-      // match: [phoneRegexp],
-      default: null,
+      default: '',
     },
     token: {
       type: String,
-      default: null,
+      default: '',
+    },
+    refreshToken: {
+      type: String,
+      default: '',
     },
   },
   {
@@ -83,6 +85,7 @@ const userSignupJoiSchema = Joi.object({
     'any.required': `"password" is a required field`,
   }),
   token: Joi.string(),
+  refreshToken: Joi.string(),
 });
 
 const userLoginJoiSchema = Joi.object({
@@ -99,6 +102,7 @@ const userLoginJoiSchema = Joi.object({
     'any.required': `"password" !is a required field`,
   }),
   token: Joi.string(),
+  refreshToken: Joi.string(),
 });
 
 const resetPasswordSchema = Joi.object({
@@ -111,13 +115,17 @@ const resetPasswordSchema = Joi.object({
 });
 
 const changePasswordSchema = Joi.object({
-  password: Joi.string().required().min(6).messages({
+  newPassword: Joi.string().required().min(6).messages({
     'string.base': `"password" should be a type of 'text'`,
     'string.empty': `"password" cannot be an empty field`,
     'string.min': `"password" should have a minimum length of {#limit}`,
-    // 'any.required': `"password" is a required field`,
   }),
-})
+  oldPassword: Joi.string().required().min(6).messages({
+    'string.base': `"password" should be a type of 'text'`,
+    'string.empty': `"password" cannot be an empty field`,
+    'string.min': `"password" should have a minimum length of {#limit}`,
+  }),
+});
 
 const editUserProfileJoiSchema = Joi.object({
   username: Joi.string().messages({
@@ -133,16 +141,23 @@ const editUserProfileJoiSchema = Joi.object({
   avatarURL: Joi.string().min(0),
   birthday: Joi.string().min(0),
   skype: Joi.string().min(0),
-  phone: Joi.string().min(0)
-    // .pattern(phoneRegexp)
-    .messages({
-      'string.base': `"phone" should be a type of 'text'`,
-      'string.pattern.base': `"phone" is not valid`,
-    }),
+  phone: Joi.string().min(0).messages({
+    'string.base': `"phone" should be a type of 'text'`,
+    'string.pattern.base': `"phone" is not valid`,
+  }),
+});
+
+const deleteUserSchema = Joi.object({
+  password: Joi.string().required().min(6).messages({
+    'string.base': `"password" !should be a type of 'text'`,
+    'string.empty': `"password" !cannot be an empty field`,
+    'string.min': `"password" !should have a minimum length of {#limit}`,
+    'any.required': `"password" !is a required field`,
+  }),
 });
 
 const refreshUserJoiSchema = Joi.object({
-  token: Joi.string().required(),
+  refreshToken: Joi.string().required(),
 });
 
 const schemas = {
@@ -152,7 +167,8 @@ const schemas = {
   resetPasswordSchema,
   editUserProfileJoiSchema,
   refreshUserJoiSchema,
-  changePasswordSchema
+  changePasswordSchema,
+  deleteUserSchema,
 };
 
 module.exports = { User, schemas };

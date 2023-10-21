@@ -1,18 +1,28 @@
-const { User } = require("../../models/user");
-const bcrypt = require("bcrypt");
-const { HttpError } = require("../../utils");
+const { User } = require('../../models/user');
+const bcrypt = require('bcrypt');
+const { HttpError } = require('../../utils');
 
 const changePassword = async (req, res) => {
-    const { _id } = req.user
-    const { password } = req.body
+  const { _id, password } = req.user;
+  const { newPassword, oldPassword } = req.body;
+  if (newPassword === oldPassword)
+    throw HttpError(400, 'New and old password can not be equals');
 
-    const hashedNewPassword = await bcrypt.hash(password, 10);
+  const isComparePassword = await bcrypt.compare(oldPassword, password);
 
-    const user = User.findByIdAndUpdate(_id, { password: hashedNewPassword }, { new: true })
-    if (!user) throw HttpError(404)
+  if (!isComparePassword) throw HttpError(400, 'Password invalid');
 
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    res.status(200).json({ message: "Password change success" })
-}
+  const user = await User.findByIdAndUpdate(
+    _id,
+    { password: hashedNewPassword },
+    { new: true }
+  );
 
-module.exports = changePassword
+  if (!user) throw HttpError(404);
+
+  res.status(200).json({ message: 'Password change success' });
+};
+
+module.exports = changePassword;

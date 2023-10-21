@@ -18,6 +18,18 @@ router.patch(
   ctrl.editProfile
 );
 
-router.patch('/edit/password', authenticate, validateBody(schemas.changePasswordSchema), ctrl.changePassword)
+router.patch(
+  '/edit/password',
+  authenticate,
+  validateBody(schemas.changePasswordSchema),
+  ctrl.changePassword
+);
+
+router.delete(
+  '/delete',
+  authenticate,
+  validateBody(schemas.deleteUserSchema),
+  ctrl.deleteUser
+);
 
 module.exports = router;
