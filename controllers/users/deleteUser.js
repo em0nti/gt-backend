@@ -1,7 +1,7 @@
-const bcrypt = require('bcrypt');
-
 const { User } = require('../../models/user');
 const { HttpError } = require('../../utils');
+const { Review } = require('../../models/review');
+const { Task } = require('../../models/task');
 
 const deleteUser = async (req, res) => {
   const { _id } = req.user;
@@ -12,13 +12,17 @@ const deleteUser = async (req, res) => {
     throw HttpError(404, "User with the ID doesn't exist.");
   }
 
-  const { password } = req.body;
+  const { secretKey } = req.body;
 
-  const isPasswordCompare = await bcrypt.compare(password, user.password);
+  const isSecretKeyCompare = user._id.toString() === secretKey;
 
-  if (!isPasswordCompare) {
-    throw HttpError(400, 'Password invalid');
+  if (!isSecretKeyCompare) {
+    throw HttpError(401, 'Secret key is invalid');
   }
+
+  await Review.deleteMany({ owner: user._id });
+
+  await Task.deleteMany({ owner: user._id });
 
   await User.findByIdAndRemove(user._id);
 

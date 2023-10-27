@@ -8,7 +8,7 @@ const sendResetPassword = async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (!user) throw HttpError(401, 'User does not exist');
+  if (!user) throw HttpError(404, 'User does not exist');
 
   const newPassword = nanoid();
   const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -18,9 +18,12 @@ const sendResetPassword = async (req, res) => {
   });
 
   const msg = {
+    from: {
+      name: 'GooseTrack',
+    },
     to: email,
     subject: 'GooseTrack password reset ',
-    html: `Your new password is ${newPassword}`,
+    html: `<p>Your new password is </p> <h4>${newPassword}</h4>`,
   };
 
   sendEmailSendGrid(msg);
